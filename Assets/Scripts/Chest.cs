@@ -7,13 +7,22 @@ public class Chest : MonoBehaviour {
     [SerializeField]
     [Tooltip("Health Pack")]
     private GameObject healthPack;
+
+    [SerializeField]
+    [Tooltip("Speed Boost")]
+    private GameObject speedBoost;
+    
     #endregion
 
     #region chest funcs
 
     IEnumerator DestroyChest() {
         yield return new WaitForSeconds(.3f);
-        Instantiate(healthPack, transform.position, transform.rotation);
+        
+        GameObject[] buffs = new GameObject[] { healthPack, speedBoost };
+        var random = new System.Random();
+        GameObject buff = buffs[random.Next(0, buffs.Length)];
+        Instantiate(buff, transform.position, transform.rotation);
         Destroy(this.gameObject);
     }
 

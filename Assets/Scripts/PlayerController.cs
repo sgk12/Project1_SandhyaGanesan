@@ -7,6 +7,7 @@ public class PlayerController : MonoBehaviour
 {
     #region movement variables
     public float moveSpeed;
+    float currSpeed;
     float x_input;
     float y_input;
     #endregion
@@ -17,6 +18,7 @@ public class PlayerController : MonoBehaviour
     float attackTimer;
     public float hitBoxTiming;
     public float endAnimationTiming;
+    public float speedUpTiming;
     bool isAttacking;
     Vector2 currDirection;
     #endregion
@@ -42,6 +44,7 @@ public class PlayerController : MonoBehaviour
         PlayerRB = GetComponent<Rigidbody2D>();
         attackTimer = 0;
         anim = GetComponent<Animator>();
+        currSpeed = moveSpeed;
         currHealth = maxHealth;
         HPSlider.value = currHealth / maxHealth;
     }
@@ -73,19 +76,19 @@ public class PlayerController : MonoBehaviour
     private void Move() {
         anim.SetBool("Moving", true);
         if (x_input > 0) {
-            PlayerRB.velocity = Vector2.right * moveSpeed;
+            PlayerRB.velocity = Vector2.right * currSpeed;
             currDirection = Vector2.right;
 
         } else if (x_input < 0) {
-            PlayerRB.velocity = Vector2.left * moveSpeed;
+            PlayerRB.velocity = Vector2.left * currSpeed;
             currDirection = Vector2.left;
             
         } else if (y_input > 0) {
-            PlayerRB.velocity = Vector2.up * moveSpeed;
+            PlayerRB.velocity = Vector2.up * currSpeed;
             currDirection = Vector2.up;
 
         } else if (y_input < 0) {
-            PlayerRB.velocity = Vector2.down * moveSpeed;
+            PlayerRB.velocity = Vector2.down * currSpeed;
             currDirection = Vector2.down;
         } else {
             PlayerRB.velocity = Vector2.zero;
@@ -93,6 +96,20 @@ public class PlayerController : MonoBehaviour
         }
         anim.SetFloat("DirX", currDirection.x);
         anim.SetFloat("DirY", currDirection.y);
+    }
+
+    public void SpeedUp(float speed) {
+        Debug.Log("speed up");
+        StartCoroutine(SpeedRoutine(speed)); // buff speed for 3 seconds
+    }
+
+    IEnumerator SpeedRoutine(float speed) {
+        currSpeed += speed;
+        Debug.Log("speed is now" + currSpeed.ToString());
+        yield return new WaitForSeconds(speedUpTiming);
+        currSpeed = moveSpeed;
+        Debug.Log("speed reset to" + moveSpeed.ToString());
+        yield return null;
     }
 
     #endregion
@@ -120,8 +137,14 @@ public class PlayerController : MonoBehaviour
         foreach (RaycastHit2D hit in hits) {
             Debug.Log(hit.transform.name);
             if(hit.transform.CompareTag("Enemy")) {
-                hit.transform.GetComponent<Enemy>().TakeDamage(Damage);
-                Debug.Log("damaged enemy");
+                if (hit.transform.GetComponent<Enemy>() != null) {
+                    hit.transform.GetComponent<Enemy>().TakeDamage(Damage);
+                    Debug.Log("damaged enemy");
+                }
+                else if (hit.transform.GetComponent<ArmorEnemy>() != null) {
+                    hit.transform.GetComponent<ArmorEnemy>().TakeDamage(Damage);
+                    Debug.Log("damaged armored enemy");
+                }
             }     
         }
         yield return new WaitForSeconds(hitBoxTiming);
